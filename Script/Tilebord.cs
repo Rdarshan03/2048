@@ -6,6 +6,11 @@ using UnityEngine;
 
 public class Tilebord : MonoBehaviour
 {
+    public float swipeThreshold = 50f; // Minimum distance in pixels to recognize a swipe
+    private Vector2 startTouchPosition;
+    private Vector2 endTouchPosition;
+    private bool isSwiping = false;
+
 
     public Manage gameManager;
     public Tile tilePrefab; 
@@ -15,6 +20,7 @@ public class Tilebord : MonoBehaviour
     private List<Tile> tiles;
     private bool waiting;
 
+   
     private void Awake()
     {
         grid = GetComponentInChildren<Tilegrid>();
@@ -32,7 +38,7 @@ public class Tilebord : MonoBehaviour
         {
             Destroy(tile.gameObject);
         }
-
+         
         tiles.Clear();
     }
     public void CreateTile()
@@ -47,7 +53,7 @@ public class Tilebord : MonoBehaviour
         if (!waiting)
         {
 
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) )
             {
                 MoveTiles(Vector2Int.up, 0, 1, 1, 1);
             }
@@ -63,8 +69,77 @@ public class Tilebord : MonoBehaviour
             {
                 MoveTiles(Vector2Int.right, grid.Width - 2, -1, 0, 1);
             }
+            HandleKeyboardInput();
+            HandleTouchInput();
+
         }
-    } 
+    }
+    private void HandleKeyboardInput()
+    {
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            MoveTiles(Vector2Int.up, 0, 1, 1, 1);
+        }
+        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            MoveTiles(Vector2Int.left, 1, 1, 0, 1);
+        }
+        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            MoveTiles(Vector2Int.down, 0, 1, grid.Height - 2, -1);
+        }
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            MoveTiles(Vector2Int.right, grid.Width - 2, -1, 0, 1);
+        }
+    }
+
+    private void HandleTouchInput()
+    {
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            if (touch.phase == TouchPhase.Began)
+            {
+                startTouchPosition = touch.position;
+                isSwiping = true;
+            }
+            else if (touch.phase == TouchPhase.Ended && isSwiping)
+            {
+                endTouchPosition = touch.position;
+                Vector2 swipeDirection = endTouchPosition - startTouchPosition;
+
+                if (swipeDirection.magnitude > swipeThreshold)
+                {
+                    swipeDirection.Normalize();
+                    HandleSwipe(swipeDirection);
+                }
+
+                isSwiping = false;
+            }
+        }
+    }
+    void HandleSwipe(Vector2 direction)
+    {
+        if (Vector2.Dot(direction, Vector2.right) > 0.5f)
+        {
+            MoveTiles(Vector2Int.right, grid.Width - 2, -1, 0, 1);
+        }
+        else if (Vector2.Dot(direction, Vector2.left) > 0.5f)
+        {
+            MoveTiles(Vector2Int.left, 1, 1, 0, 1);
+        }
+        else if (Vector2.Dot(direction, Vector2.up) > 0.5f)
+        {
+            MoveTiles(Vector2Int.up, 0, 1, 1, 1);
+        }
+        else if (Vector2.Dot(direction, Vector2.down) > 0.5f)
+        {
+            MoveTiles(Vector2Int.down, 0, 1, grid.Height - 2, -1);
+        }
+    }
+
     private void MoveTiles(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
     {
         bool changed = false;
@@ -131,11 +206,12 @@ public class Tilebord : MonoBehaviour
 
         b.SetState(tileStates[index], number);
 
-        b.transform.DORotateQuaternion(Quaternion.Euler(0, 0, 90),1);
+        b.transform.DOLocalRotate(new Vector3(0, 0, 360), .1f, RotateMode.FastBeyond360).SetRelative(true).SetEase(Ease.Linear);
+
 
         gameManager.IncreaseScore(number);
     }
-
+     
     private int IndexOf(Tilestate state)
     {
         for (int i = 0; i < tileStates.Length; i++)

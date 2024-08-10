@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 public class Tile : MonoBehaviour
 {
+   
     public Tilestate state { get; private set; }
     public Tilecell cell { get; private set; }
     public int number { get; private set; }
@@ -86,15 +87,18 @@ public class Tile : MonoBehaviour
             elapsed += Time.deltaTime;
 
             yield return null;
-        }
+        } 
 
         transform.position = to;
 
         if (merging)    
         {
+           
             Destroy(gameObject);
+            //transform.DOLocalRotate(new Vector3(0,0, 360), 1f, RotateMode.FastBeyond360).SetRelative(true).SetEase(Ease.Linear);
+           // transform.DOSpiral
 
-        }
+        } 
 
 
     }

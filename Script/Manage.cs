@@ -18,6 +18,7 @@ public class Manage : MonoBehaviour
     }
     public void Newgame()
     {
+        SoundManager.instance.BTNClick();
         SetScore(0);
         hiscoreText.text = LoadHiscore().ToString();
 
