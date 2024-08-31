@@ -206,8 +206,7 @@ public class Tilebord : MonoBehaviour
 
         b.SetState(tileStates[index], number);
 
-        b.transform.DOLocalRotate(new Vector3(0, 0, 360), .1f, RotateMode.FastBeyond360).SetRelative(true).SetEase(Ease.Linear);
-
+        b.transform.DOScale(Vector3.one * 1.2f, 0.1f).SetEase(Ease.OutBounce).OnComplete(() => b.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.InBack));
 
         gameManager.IncreaseScore(number);
     }
